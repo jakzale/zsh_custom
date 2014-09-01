@@ -1,0 +1,4 @@
+# Ignore files provided by Oh-my-zsh
+example.zsh
+plugins/example/example.plugin.zsh
+
