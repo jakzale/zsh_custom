@@ -1,13 +1,43 @@
-function cabal_sandbox_info() {
-    cabal_files=(*.cabal(N))
-    if [ $#cabal_files -gt 0 ]; then
-        if [ -f cabal.sandbox.config ]; then
-            echo "%{$fg[green]%}sandboxed%{$reset_color%}"
-        else
-            echo "%{$fg[red]%}not sandboxed%{$reset_color%}"
+# Warning, this might change directory
+function _find_cabal_file() {
+    local cabal_files
+    while [ $PWD != "/" ]; do
+        cabal_files=(*.cabal(N))
+        if [ $#cabal_files -gt 0 ]; then
+            for cabal in $cabal_files; do
+                [ -s $cabal ] && echo "$PWD/$cabal" && return true
+            done
         fi
+        cd ..
+    done
+    return false
+}
+
+function cabal_sandbox_info() {
+    # Find cabal file
+    local cabal_file=$(_find_cabal_file) cabal_dir
+    local cabal_prefix="λ:(" cabal_suffix="%{$fg[blue]%})%{$reset_color%}"
+    local cabal_name="" cabal_box
+
+    if [ -n "$cabal_file" ]; then
+        # Getting the name of the project
+        cabal_name=$(sed -n -e 's/^name:[   ]*\([^  ]*\)[   ]*/\1/p' $cabal_file)
+
+        if [ -z "$cabal_name" ]; then
+            cabal_name="ε"
+        fi
+
+        cabal_dir=$(dirname $cabal_file)
+        if [ -f "$cabal_dir/cabal.sandbox.config" ]; then
+            cabal_box="%{$fg[green]%}"
+        else
+            cabal_box="%{$fg[red]%}"
+        fi
+
+        echo "$cabal_prefix$cabal_box$cabal_name$cabal_suffix"
     fi
 }
+
 
 function _cabal_commands() {
     local ret=1 state
