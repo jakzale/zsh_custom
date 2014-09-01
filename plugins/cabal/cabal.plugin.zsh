@@ -34,6 +34,8 @@ function cabal_sandbox_info() {
 
         if [ -z "$cabal_name" ]; then
             cabal_name="ε"
+        elif [ $#cabal_name -gt 5 ]; then
+            cabal_name="$cabal_name[1,5]…"
         fi
 
         cabal_dir=$(dirname $cabal_file)
