@@ -13,10 +13,11 @@ function _find_cabal_file() {
     return false
 }
 
+# Bear in mind that cabal does not know about a sandbox in the parent directory
 function cabal_sandbox_info() {
     # Find cabal file
     local cabal_file=$(_find_cabal_file) cabal_dir
-    local cabal_prefix="λ:(" cabal_suffix="%{$fg[blue]%})%{$reset_color%}"
+    local cabal_prefix=" λ:(" cabal_suffix="%{$fg[blue]%})%{$reset_color%}"
     local cabal_name="" cabal_box
 
     if [ -n "$cabal_file" ]; then
