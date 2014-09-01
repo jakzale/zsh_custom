@@ -38,6 +38,84 @@ function cabal_sandbox_info() {
     fi
 }
 
+# Sandbox aware ghci
+# taken from: http://ro-che.info/articles/2014-03-05-cabal-sandbox-tips.html
+function _find_cabal_db() {
+    local cabal_file=$(_find_cabal_file) cabal_sandbox_config
+
+    if [ -n "$cabal_file" ]; then
+        cabal_sandbox_config="$(dirname $cabal_file)/cabal.sandbox.config"
+
+        if [ -f "$cabal_sandbox_config" ]; then
+            echo $(sed -n -e 's/^package-db: \(.*\)/\1/p' "$cabal_sandbox_config")
+        fi
+    fi
+}
+
+# Translate absolute path to relative path
+# taken from: http://stackoverflow.com/a/12498485
+_absolute_to_real() {
+    # both $1 and $2 are absolute paths beginning with /
+    # returns relative path to $2/$target from $1/$source
+    local source=$1
+    local target=$2
+
+    local common_part=$source # for now
+    local result="" # for now
+
+    while [[ "${target#$common_part}" == "${target}" ]]; do
+        # no match, means that candidate common part is not correct
+        # go up one level (reduce common part)
+        common_part="$(dirname $common_part)"
+        # and record that we went back, with correct / handling
+        if [[ -z $result ]]; then
+            result=".."
+        else
+            result="../$result"
+        fi
+    done
+
+    if [[ $common_part == "/" ]]; then
+        # special case for root (no common path)
+        result="$result/"
+    fi
+
+    # since we now have identified the common part,
+    # compute the non-common part
+    local forward_part="${target#$common_part}"
+
+    # and now stick all parts together
+    if [[ -n $result ]] && [[ -n $forward_part ]]; then
+        result="$result$forward_part"
+    elif [[ -n $forward_part ]]; then
+        # extra slash removal
+        result="${forward_part:1}"
+    fi
+
+    echo $result
+}
+
+# Simple Sandbox aware GHCi wrapper
+function ghci() {
+    local db=$(_find_cabal_db)
+    if [ -n "$db" ]; then
+        echo "$fg_bold[blue]Using Cabal Sandbox:$reset_color $(_absolute_to_real $PWD $db)"
+        command ghci -no-user-package-db -package-db "$db" $@
+    else
+        command ghci $@
+    fi
+}
+
+# Simple Sandbox aware GHC wrapper
+function ghc() {
+    local db=$(_find_cabal_db)
+    if [ -n "$db" ]; then
+        echo "$fg_bold[blue]Using Cabal Sandbox:$reset_color $(_absolute_to_real $PWD $db)"
+        command ghc -no-user-package-db -package-db "$db" $@
+    else
+        command ghc $@
+    fi
+}
 
 function _cabal_commands() {
     local ret=1 state
