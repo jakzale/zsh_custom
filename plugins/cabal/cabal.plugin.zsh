@@ -1,3 +1,11 @@
+# Slightly improved support for cabal
+# TODO
+#   * currently only a combination of cabal package && cabal sandbox is supported
+#       - should I support more (this seems suitable for my projects
+#       - it is not sure how I could support more
+#   * add abbreviation for project names, as some might get quite long
+#   * improve handling of multiple status lines in the prompt
+
 # Warning, this might change directory
 function _find_cabal_file() {
     local cabal_files
