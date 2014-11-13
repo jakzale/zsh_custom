@@ -1,3 +1,4 @@
+**DEPRECATED**, Joined with [jakzale/dotfiles](https://github.com/jakzale/dotfiles)
 # OMZ Customization
 
 List of Changes:
